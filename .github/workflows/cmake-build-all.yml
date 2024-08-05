@@ -1,0 +1,359 @@
+# Build SmartCGMS workflow
+name: Build SmartCGMS (CMake)
+
+on:
+  push:
+    branches: [ "master" ]
+
+env:
+  BUILD_TYPE: Release
+
+jobs:
+  build-linux-x86_64:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Fetch dependencies
+      run: sudo apt update && sudo apt install -y qtbase5-dev libqt5svg5-dev
+
+    - name: Update submodules
+      run: git submodule update --remote --init
+
+    - name: Build xlnt
+      run: cd deps/xlnt && cmake . -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DCMAKE_C_FLAGS="-fPIC -Wno-deprecated-declarations -Wno-everything" -DCMAKE_CXX_FLAGS="-fPIC -Wno-deprecated-declarations -Wno-everything" && cmake --build . --config ${{env.BUILD_TYPE}}
+
+    - name: Build ExcelFormat
+      run: cd deps/ExcelFormat && cmake . -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DCMAKE_C_FLAGS="-fPIC -Wno-deprecated-declarations -Wno-everything" -DCMAKE_CXX_FLAGS="-fPIC -Wno-deprecated-declarations -Wno-everything" && cmake --build . --config ${{env.BUILD_TYPE}}
+
+    - name: Configure CMake
+      run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DXLNT_INCLUDE=deps/xlnt/include/ -DXLNT_LIBRARY=deps/xlnt/source/ -DEXCELFORMAT_INCLUDE=deps/ExcelFormat/include/ -DEXCELFORMAT_LIBRARY=deps/ExcelFormat/ -DEIGEN3_INCLUDE=deps/Eigen3
+
+    - name: Build
+      run: cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}}
+
+    - name: Mark version
+      run: cp ${{github.workspace}}/scgms_version ${{github.workspace}}/build/compiled/scgms_version
+
+    - name: Upload build outputs
+      uses: actions/upload-artifact@v4
+      with:
+        name: scgms-linux-x86_64
+        path: ${{github.workspace}}/build/compiled/
+
+#  build-linux-x86_64_AVX:
+#    runs-on: ubuntu-latest
+#
+#    steps:
+#    - uses: actions/checkout@v4
+#
+#    - name: Fetch dependencies
+#      run: sudo apt update && sudo apt install -y qtbase5-dev libqt5svg5-dev
+#
+#    - name: Update submodules
+#      run: git submodule update --remote --init
+#
+#    - name: Build xlnt
+#      run: cd deps/xlnt && cmake . -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DCMAKE_C_FLAGS="-fPIC -Wno-deprecated-declarations -mavx" -DCMAKE_CXX_FLAGS="-fPIC -Wno-deprecated-declarations -mavx" && cmake --build . --config ${{env.BUILD_TYPE}}
+#
+#    - name: Build ExcelFormat
+#      run: cd deps/ExcelFormat && cmake . -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DCMAKE_C_FLAGS="-fPIC -Wno-deprecated-declarations -mavx" -DCMAKE_CXX_FLAGS="-fPIC -Wno-deprecated-declarations -mavx" && cmake --build . --config ${{env.BUILD_TYPE}}
+#
+#    - name: Configure CMake
+#      run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DCMAKE_C_FLAGS="-mavx" -DCMAKE_CXX_FLAGS="-mavx" -DXLNT_INCLUDE=deps/xlnt/include/ -DXLNT_LIBRARY=deps/xlnt/source/ -DEXCELFORMAT_INCLUDE=deps/ExcelFormat/include/ -DEXCELFORMAT_LIBRARY=deps/ExcelFormat/ -DEIGEN3_INCLUDE=deps/Eigen3
+#
+#    - name: Build
+#      run: cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}}
+#
+#    - name: Mark version
+#      run: cp ${{github.workspace}}/scgms_version ${{github.workspace}}/build/compiled/scgms_version
+#
+#    - name: Upload build outputs
+#      uses: actions/upload-artifact@v4
+#      with:
+#        name: scgms-linux-x86_64_AVX
+#        path: ${{github.workspace}}/build/compiled/
+#
+#  build-linux-x86_64_AVX2:
+#    runs-on: ubuntu-latest
+#
+#    steps:
+#    - uses: actions/checkout@v4
+#
+#    - name: Fetch dependencies
+#      run: sudo apt update && sudo apt install -y qtbase5-dev libqt5svg5-dev
+#
+#    - name: Update submodules
+#      run: git submodule update --remote --init
+#
+#    - name: Build xlnt
+#      run: cd deps/xlnt && cmake . -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DCMAKE_C_FLAGS="-fPIC -Wno-deprecated-declarations -mavx2" -DCMAKE_CXX_FLAGS="-fPIC -Wno-deprecated-declarations -mavx2" && cmake --build . --config ${{env.BUILD_TYPE}}
+#
+#    - name: Build ExcelFormat
+#      run: cd deps/ExcelFormat && cmake . -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DCMAKE_C_FLAGS="-fPIC -Wno-deprecated-declarations -mavx2" -DCMAKE_CXX_FLAGS="-fPIC -Wno-deprecated-declarations -mavx2" && cmake --build . --config ${{env.BUILD_TYPE}}
+#
+#    - name: Configure CMake
+#      run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DCMAKE_C_FLAGS="-mavx2" -DCMAKE_CXX_FLAGS="-mavx2" -DXLNT_INCLUDE=deps/xlnt/include/ -DXLNT_LIBRARY=deps/xlnt/source/ -DEXCELFORMAT_INCLUDE=deps/ExcelFormat/include/ -DEXCELFORMAT_LIBRARY=deps/ExcelFormat/ -DEIGEN3_INCLUDE=deps/Eigen3
+#
+#    - name: Build
+#      run: cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}}
+#
+#    - name: Mark version
+#      run: cp ${{github.workspace}}/scgms_version ${{github.workspace}}/build/compiled/scgms_version
+#
+#    - name: Upload build outputs
+#      uses: actions/upload-artifact@v4
+#      with:
+#        name: scgms-linux-x86_64_AVX2
+#        path: ${{github.workspace}}/build/compiled/
+
+  build-windows-x86_64:
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Install Qt
+      uses: jurplel/install-qt-action@v4
+      with:
+        version: '5.15.2'
+        host: 'windows'
+        target: 'desktop'
+        arch: 'win64_msvc2019_64'
+        install-deps: 'true'
+        archives: 'qtbase qtsvg qtsql qttools'
+        set-env: 'true'
+        tools-only: 'false'
+        dir: '${{ github.workspace }}/deps'
+        tools: 'tools_generic'
+
+    - name: Update submodules
+      run: git submodule update --remote --init
+
+    - name: Build xlnt
+      run: cd deps/xlnt && cmake . -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DCMAKE_C_FLAGS="/bigobj" -DCMAKE_CXX_FLAGS="/bigobj" && cmake --build . --config ${{env.BUILD_TYPE}}
+
+    - name: Build ExcelFormat
+      run: cd deps/ExcelFormat && cmake . -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DCMAKE_C_FLAGS="/bigobj" -DCMAKE_CXX_FLAGS="/bigobj" && cmake --build . --config ${{env.BUILD_TYPE}}
+
+    - name: Configure CMake
+      run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DXLNT_INCLUDE=deps/xlnt/include/ -DXLNT_LIBRARY=deps/xlnt/source/${{env.BUILD_TYPE}}/ -DEXCELFORMAT_INCLUDE=deps/ExcelFormat/include/ -DEXCELFORMAT_LIBRARY=deps/ExcelFormat/${{env.BUILD_TYPE}}/ -DEIGEN3_INCLUDE=deps/Eigen3
+
+    - name: Build
+      run: cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}}
+
+    - name: Deploy Qt libraries
+      run: cd ${{github.workspace}}/build/compiled/Release/ && ${{ github.workspace }}\deps\Qt\5.15.2\msvc2019_64\bin\windeployqt.exe scgms-desktop.exe
+
+    - name: Copy dependencies
+      run: copy ${{github.workspace}}\deps\xlnt\source\${{env.BUILD_TYPE}}\xlnt.dll ${{github.workspace}}\build\compiled\${{env.BUILD_TYPE}}\xlnt.dll
+
+    - name: Mark version
+      run: copy ${{github.workspace}}\scgms_version ${{github.workspace}}\build\compiled\${{env.BUILD_TYPE}}\scgms_version
+
+    - name: Upload build outputs
+      uses: actions/upload-artifact@v4
+      with:
+        name: scgms-windows-x86_64
+        path: ${{github.workspace}}/build/compiled/Release/
+
+#  build-windows-x86_64_AVX:
+#    runs-on: windows-latest
+#
+#    steps:
+#    - uses: actions/checkout@v4
+#
+#    - name: Install Qt
+#      uses: jurplel/install-qt-action@v4
+#      with:
+#        version: '5.15.2'
+#        host: 'windows'
+#        target: 'desktop'
+#        arch: 'win64_msvc2019_64'
+#        install-deps: 'true'
+#        archives: 'qtbase qtsvg qtsql'
+#        set-env: 'true'
+#        tools-only: 'false'
+#
+#    - name: Update submodules
+#      run: git submodule update --remote --init
+#
+#    - name: Build xlnt
+#      run: cd deps/xlnt && cmake . -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DCMAKE_C_FLAGS="/bigobj /arch:AVX" -DCMAKE_CXX_FLAGS="/bigobj /arch:AVX /EHsc" && cmake --build . --config ${{env.BUILD_TYPE}}
+#
+#    - name: Build ExcelFormat
+#      run: cd deps/ExcelFormat && cmake . -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DCMAKE_C_FLAGS="/bigobj /arch:AVX" -DCMAKE_CXX_FLAGS="/bigobj /arch:AVX /EHsc" && cmake --build . --config ${{env.BUILD_TYPE}}
+#
+#    - name: Configure CMake
+#      run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DCMAKE_C_FLAGS="/arch:AVX" -DCMAKE_CXX_FLAGS="/arch:AVX /EHsc" -DXLNT_INCLUDE=deps/xlnt/include/ -DXLNT_LIBRARY=deps/xlnt/source/${{env.BUILD_TYPE}}/ -DEXCELFORMAT_INCLUDE=deps/ExcelFormat/include/ -DEXCELFORMAT_LIBRARY=deps/ExcelFormat/${{env.BUILD_TYPE}}/ -DEIGEN3_INCLUDE=deps/Eigen3
+#
+#    - name: Build
+#      run: cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}}
+#
+#    - name: Deploy Qt libraries
+#      run: cd ${{github.workspace}}/build/compiled/Release/ && ${{ github.workspace }}\deps\Qt\5.15.2\msvc2019_64\bin\windeployqt.exe scgms-desktop.exe
+#
+#    - name: Copy dependencies
+#      run: copy ${{github.workspace}}\deps\xlnt\source\${{env.BUILD_TYPE}}\xlnt.dll ${{github.workspace}}\build\compiled\${{env.BUILD_TYPE}}\xlnt.dll
+#
+#    - name: Mark version
+#      run: copy ${{github.workspace}}\scgms_version ${{github.workspace}}\build\compiled\scgms_version
+#
+#    - name: Upload build outputs
+#      uses: actions/upload-artifact@v4
+#      with:
+#        name: scgms-windows-x86_64_AVX
+#        path: ${{github.workspace}}/build/compiled/
+#
+#  build-windows-x86_64_AVX2:
+#    runs-on: windows-latest
+#
+#    steps:
+#    - uses: actions/checkout@v4
+#
+#    - name: Install Qt
+#      uses: jurplel/install-qt-action@v4
+#      with:
+#        version: '5.15.2'
+#        host: 'windows'
+#        target: 'desktop'
+#        arch: 'win64_msvc2019_64'
+#        install-deps: 'true'
+#        archives: 'qtbase qtsvg qtsql'
+#        set-env: 'true'
+#        tools-only: 'false'
+#
+#    - name: Update submodules
+#      run: git submodule update --remote --init
+#
+#    - name: Build xlnt
+#      run: cd deps/xlnt && cmake . -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DCMAKE_C_FLAGS="/bigobj /arch:AVX2" -DCMAKE_CXX_FLAGS="/bigobj /arch:AVX2 /EHsc" && cmake --build . --config ${{env.BUILD_TYPE}}
+#
+#    - name: Build ExcelFormat
+#      run: cd deps/ExcelFormat && cmake . -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DCMAKE_C_FLAGS="/bigobj /arch:AVX2" -DCMAKE_CXX_FLAGS="/bigobj /arch:AVX2 /EHsc" && cmake --build . --config ${{env.BUILD_TYPE}}
+#
+#    - name: Configure CMake
+#      run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DCMAKE_C_FLAGS="/arch:AVX2" -DCMAKE_CXX_FLAGS="/arch:AVX2 /EHsc" -DXLNT_INCLUDE=deps/xlnt/include/ -DXLNT_LIBRARY=deps/xlnt/source/${{env.BUILD_TYPE}}/ -DEXCELFORMAT_INCLUDE=deps/ExcelFormat/include/ -DEXCELFORMAT_LIBRARY=deps/ExcelFormat/${{env.BUILD_TYPE}}/ -DEIGEN3_INCLUDE=deps/Eigen3
+#
+#    - name: Build
+#      run: cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}}
+#
+#    - name: Deploy Qt libraries
+#      run: cd ${{github.workspace}}/build/compiled/Release/ && ${{ github.workspace }}\deps\Qt\5.15.2\msvc2019_64\bin\windeployqt.exe scgms-desktop.exe
+#
+#    - name: Copy dependencies
+#      run: copy ${{github.workspace}}\deps\xlnt\source\${{env.BUILD_TYPE}}\xlnt.dll ${{github.workspace}}\build\compiled\${{env.BUILD_TYPE}}\xlnt.dll
+#
+#    - name: Mark version
+#      run: copy ${{github.workspace}}\scgms_version ${{github.workspace}}\build\compiled\scgms_version
+#
+#    - name: Upload build outputs
+#      uses: actions/upload-artifact@v4
+#      with:
+#        name: scgms-windows-x86_64_AVX2
+#        path: ${{github.workspace}}/build/compiled/
+
+  build-android-arm7:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - uses: nttld/setup-ndk@v1
+      id: setup-ndk
+      with:
+        ndk-version: r27
+        add-to-path: false
+        local-cache: false
+
+    - name: Update submodules
+      run: git submodule update --remote --init
+
+    - name: Configure CMake
+      run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DCMAKE_TOOLCHAIN_FILE="${{ steps.setup-ndk.outputs.ndk-path }}/build/cmake/android.toolchain.cmake" -DANDROID_ABI="armeabi-v7a" -DANDROID_NATIVE_API_LEVEL=23 -DQt_DISABLE=TRUE -DBUILD_CORE_ONLY=TRUE -DCOMPONENT_EXCEL_LOADERS=FALSE -DCMAKE_CXX_FLAGS="-DNOGUI -DSTDCPP_FS_DISABLED -DANDROID" -DEIGEN3_INCLUDE=deps/Eigen3
+
+    - name: Build
+      run: cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}}
+
+    - name: Mark version
+      run: cp ${{github.workspace}}/scgms_version ${{github.workspace}}/build/compiled/scgms_version
+
+    - name: Upload build outputs
+      uses: actions/upload-artifact@v4
+      with:
+        name: scgms-android-armeabi-v7a
+        path: ${{github.workspace}}/build/compiled/
+
+  build-android-arm8:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - uses: nttld/setup-ndk@v1
+      id: setup-ndk
+      with:
+        ndk-version: r27
+        add-to-path: false
+        local-cache: false
+
+    - name: Update submodules
+      run: git submodule update --remote --init
+
+    - name: Configure CMake
+      run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DCMAKE_TOOLCHAIN_FILE="${{ steps.setup-ndk.outputs.ndk-path }}/build/cmake/android.toolchain.cmake" -DANDROID_ABI="arm64-v8a" -DANDROID_NATIVE_API_LEVEL=23 -DQt_DISABLE=TRUE -DBUILD_CORE_ONLY=TRUE -DCOMPONENT_EXCEL_LOADERS=FALSE -DCMAKE_CXX_FLAGS="-DNOGUI -DSTDCPP_FS_DISABLED -DANDROID" -DEIGEN3_INCLUDE=deps/Eigen3
+
+    - name: Build
+      run: cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}}
+
+    - name: Mark version
+      run: cp ${{github.workspace}}/scgms_version ${{github.workspace}}/build/compiled/scgms_version
+
+    - name: Upload build outputs
+      uses: actions/upload-artifact@v4
+      with:
+        name: scgms-android-arm64-v8a
+        path: ${{github.workspace}}/build/compiled/
+
+  build-mac-x86_64:
+    runs-on: macos-13
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Install Qt
+      uses: jurplel/install-qt-action@v4
+      with:
+        version: '5.15.2'
+        host: 'mac'
+        target: 'desktop'
+        arch: 'clang_64'
+        install-deps: 'true'
+        archives: 'qtbase qtsvg qtsql'
+        set-env: 'true'
+        tools-only: 'false'
+
+    - name: Update submodules
+      run: git submodule update --remote --init
+
+    - name: Build xlnt
+      run: cd deps/xlnt && cmake . -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DCMAKE_C_FLAGS="-fPIC -Wno-deprecated-declarations" -DCMAKE_CXX_FLAGS="-fPIC -Wno-deprecated-declarations" && cmake --build . --config ${{env.BUILD_TYPE}}
+
+    - name: Build ExcelFormat
+      run: cd deps/ExcelFormat && cmake . -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DCMAKE_C_FLAGS="-fPIC -Wno-deprecated-declarations" -DCMAKE_CXX_FLAGS="-fPIC -Wno-deprecated-declarations" && cmake --build . --config ${{env.BUILD_TYPE}}
+
+    - name: Configure CMake
+      run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DXLNT_INCLUDE=deps/xlnt/include/ -DXLNT_LIBRARY=deps/xlnt/source/ -DEXCELFORMAT_INCLUDE=deps/ExcelFormat/include/ -DEXCELFORMAT_LIBRARY=deps/ExcelFormat/ -DEIGEN3_INCLUDE=deps/Eigen3
+
+    - name: Build
+      run: cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}}
+
+    - name: Mark version
+      run: cp ${{github.workspace}}/scgms_version ${{github.workspace}}/build/compiled/scgms_version
+
+    - name: Upload build outputs
+      uses: actions/upload-artifact@v4
+      with:
+        name: scgms-macos-x86_64
+        path: ${{github.workspace}}/build/compiled/
