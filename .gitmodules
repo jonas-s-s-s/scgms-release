@@ -19,3 +19,6 @@
 [submodule "deps/Eigen3"]
 	path = deps/Eigen3
 	url = https://github.com/SmartCGMS/Eigen3.git
+[submodule "wrappers"]
+	path = wrappers
+	url = https://github.com/SmartCGMS/wrappers.git
