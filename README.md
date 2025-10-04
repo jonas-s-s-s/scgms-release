@@ -16,7 +16,7 @@
 
 `cmake --workflow --preset msvc-ninja-all`
 
-- Set your MSVC and Qt path in CMakePresets.json before attempting to configure or build. 
+- Set your MSVC and Qt path in CMakePresets.json before attempting to configure or build
 - To compile outside of IDE use x64 Native Tools Command Prompt for VS
 
 # <img src="https://diabetes.zcu.cz/img/icon.png" width="24" height="24" /> SmartCGMS - release repository
