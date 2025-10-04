@@ -1,3 +1,24 @@
+# Commands
+
+- Git submodules
+
+`git submodule update --remote --init`
+
+- CMake configure step
+
+`cmake --preset msvc-ninja-configure`
+
+- CMake build step
+
+`cmake --build --preset msvc-ninja-build`
+
+- CMake configure + build
+
+`cmake --workflow --preset msvc-ninja-all`
+
+- Set your MSVC and Qt path in CMakePresets.json before attempting to configure or build. 
+- To compile outside of IDE use x64 Native Tools Command Prompt for VS
+
 # <img src="https://diabetes.zcu.cz/img/icon.png" width="24" height="24" /> SmartCGMS - release repository
 This repository is an aggregate repository coupling all parts of the SmartCGMS software framework into a single point. Additionally, every time we release a new version, it becomes available here.
 

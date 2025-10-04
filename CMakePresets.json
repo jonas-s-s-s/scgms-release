@@ -1,0 +1,61 @@
+{
+  "version": 6,
+  "cmakeMinimumRequired": {
+    "major": 3,
+    "minor": 23,
+    "patch": 0
+  },
+  "configurePresets": [
+    {
+      "name": "msvc-ninja-configure",
+      "displayName": "msvc (Ninja)",
+      "description": "Configure using MSVC and Ninja",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build",
+      "environment": {
+        "QT_BASE_PATH": "C:/Qt",
+        "QT_VERSION_PATH": "C:/Qt/6.9.3",
+		"MSVC_PATH": "C:/Program Files (x86)/Microsoft Visual Studio/2022/BuildTools/VC/Tools/MSVC/14.44.35207/bin/Hostx64/x64/cl.exe"
+      },
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "CMAKE_MAKE_PROGRAM": "$env{QT_BASE_PATH}/Tools/Ninja/ninja.exe",
+        "CMAKE_C_COMPILER": "$env{MSVC_PATH}",
+        "CMAKE_CXX_COMPILER": "$env{MSVC_PATH}",
+        "CMAKE_PREFIX_PATH": "$env{QT_VERSION_PATH}/msvc2022_64",
+        "Qt6_DIR": "$env{QT_VERSION_PATH}/msvc2022_64/lib/cmake/Qt6",
+        "SMARTCGMS_COMMON_DIR": "${sourceDir}/common",
+        "XLNT_INCLUDE": "${sourceDir}/deps/xlnt/include/",
+        "XLNT_LIBRARY": "${sourceDir}/deps/xlnt/build/source/",
+        "EXCELFORMAT_INCLUDE": "${sourceDir}/deps/ExcelFormat/include/",
+        "EXCELFORMAT_LIBRARY": "${sourceDir}/deps/ExcelFormat/build/",
+        "EIGEN3_INCLUDE": "${sourceDir}/deps/Eigen3"
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "msvc-ninja-build",
+      "displayName": "Build using msvc and ninja",
+      "configurePreset": "msvc-ninja-configure",
+      "jobs": 8
+    }
+  ],
+  "workflowPresets": [
+    {
+      "name": "msvc-ninja-all",
+      "displayName": "Full Ninja Workflow",
+      "description": "Configure and build using msvc and ninja",
+      "steps": [
+        {
+          "type": "configure",
+          "name": "msvc-ninja-configure"
+        },
+        {
+          "type": "build",
+          "name": "msvc-ninja-build"
+        }
+      ]
+    }
+  ]
+}

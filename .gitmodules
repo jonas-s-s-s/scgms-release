@@ -1,14 +1,12 @@
 [submodule "common"]
 	path = common
-	url = https://github.com/SmartCGMS/common.git
-	branch = tx
+	url = https://github.com/jonas-s-s-s/common.git
 [submodule "core"]
 	path = core
-	url = https://github.com/SmartCGMS/core.git
-	branch = tx
+	url = https://github.com/jonas-s-s-s/core.git
 [submodule "console"]
 	path = console
-	url = https://github.com/SmartCGMS/console.git
+	url = https://github.com/jonas-s-s-s/console.git
 [submodule "desktop"]
 	path = desktop
 	url = https://github.com/SmartCGMS/desktop.git
