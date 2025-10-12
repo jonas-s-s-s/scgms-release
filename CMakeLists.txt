@@ -16,7 +16,7 @@ execute_process(
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/deps/ExcelFormat
 )
 
-message("> ExcelFormat has been configured.")
+message(STATUS "> ExcelFormat has been configured.")
 
 
 execute_process(
@@ -24,7 +24,7 @@ execute_process(
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/deps/ExcelFormat
 )
 
-message("> ExcelFormat has been built.")
+message(STATUS "> ExcelFormat has been built.")
 
 execute_process(
         COMMAND cmake -S . -B ./build/ -G ${CMAKE_GENERATOR}
@@ -36,14 +36,14 @@ execute_process(
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/deps/xlnt
 )
 
-message("> xlnt has been configured.")
+message(STATUS "> xlnt has been configured.")
 
 execute_process(
         COMMAND cmake --build ./build/ --parallel
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/deps/xlnt
 )
 
-message("> xlnt has been built.")
+message(STATUS "> xlnt has been built.")
 
 # Copy dependency DLLs to build dir (dll name is different depending on if it's a debug build or not)
 if ((NOT CMAKE_BUILD_TYPE) OR (CMAKE_BUILD_TYPE STREQUAL "Debug"))

@@ -19,7 +19,6 @@
       },
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug",
-        "CMAKE_CXX_FLAGS": "/EHsc",
         "CMAKE_PREFIX_PATH": "$env{QT_VERSION_PATH}/msvc2022_64;$env{BOOST_PATH}",
         "Qt6_DIR": "$env{QT_VERSION_PATH}/msvc2022_64/lib/cmake/Qt6",
         "SMARTCGMS_COMMON_DIR": "${sourceDir}/common",
