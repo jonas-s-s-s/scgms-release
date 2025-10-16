@@ -23,6 +23,15 @@
 
 - Intel TBB and Boost libraries must be installed on the host system and detected by CMake (they're pagmo dependencies)
 - Compiled pagmo4scgms needs to have pagmo.dll in its directory, pagmo.dll then needs Boost and TBB DLLs to be either in the env path variable or in the same directory
+- Additionally pagmo also depends on Eigen3 (without it some components of Pagmo won't work), Eigen3 is already in the /deps/ directory, however in order for CMake to detect it the Eigen3Configure file needs to exist. This file is created by running Eigen3's CMake configure step.
+- "namespace ppr", "SPO" and duplicated nlopt code were removed from the original pagmo4scgms library (see commit details)
+- TODO:
+    - Consider compiling TBB and Boost in /deps/ directory (possibly very long download and compile time?)
+        - Somehow utilize existing convention of passing deps by CMake command line params? 
+    - Solve issues with pagmo4scgms.dll's dependencies - prompt user to add libs to env path or copy DLLs?
+    - Switch pagmo to Git Submodules instead of CMake FetchContent? Possibly better for editing pagmo sources locally. 
+    - Pathfinder test
+    - Pagmo AVX analysis
 
 # <img src="https://diabetes.zcu.cz/img/icon.png" width="24" height="24" /> SmartCGMS - release repository
 This repository is an aggregate repository coupling all parts of the SmartCGMS software framework into a single point. Additionally, every time we release a new version, it becomes available here.
