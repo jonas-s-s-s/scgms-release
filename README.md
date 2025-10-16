@@ -19,6 +19,11 @@
 - Set your MSVC and Qt path in CMakePresets.json before attempting to configure or build
 - To compile outside of IDE use x64 Native Tools Command Prompt for VS
 
+# pagmo4scgms
+
+- Intel TBB and Boost libraries must be installed on the host system and detected by CMake (they're pagmo dependencies)
+- Compiled pagmo4scgms needs to have pagmo.dll in its directory, pagmo.dll then needs Boost and TBB DLLs to be either in the env path variable or in the same directory
+
 # <img src="https://diabetes.zcu.cz/img/icon.png" width="24" height="24" /> SmartCGMS - release repository
 This repository is an aggregate repository coupling all parts of the SmartCGMS software framework into a single point. Additionally, every time we release a new version, it becomes available here.
 
