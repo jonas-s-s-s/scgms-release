@@ -6,6 +6,9 @@ message("========================")
 message("Building dependencies...")
 message("========================")
 
+#########################################################################################
+# ExcelFormat
+
 execute_process(
         COMMAND cmake -S . -B ./build/ -G ${CMAKE_GENERATOR}
         -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
@@ -27,6 +30,7 @@ execute_process(
 message(STATUS "> ExcelFormat has been built.")
 
 #########################################################################################
+# XLNT
 
 execute_process(
         COMMAND cmake -S . -B ./build/ -G ${CMAKE_GENERATOR}
@@ -48,7 +52,7 @@ execute_process(
 message(STATUS "> xlnt has been built.")
 
 #########################################################################################
-
+# EIGEN 3
 
 execute_process(
         COMMAND cmake -S . -B ./build/ -G ${CMAKE_GENERATOR}
@@ -60,7 +64,6 @@ execute_process(
 )
 
 message(STATUS "> Eigen3 has been configured.")
-
 
 # Copy dependency DLLs to build dir (dll name is different depending on if it's a debug build or not)
 if ((NOT CMAKE_BUILD_TYPE) OR (CMAKE_BUILD_TYPE STREQUAL "Debug"))

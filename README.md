@@ -26,12 +26,44 @@
 - Additionally pagmo also depends on Eigen3 (without it some components of Pagmo won't work), Eigen3 is already in the /deps/ directory, however in order for CMake to detect it the Eigen3Configure file needs to exist. This file is created by running Eigen3's CMake configure step.
 - "namespace ppr", "SPO" and duplicated nlopt code were removed from the original pagmo4scgms library (see commit details)
 - TODO:
-    - Consider compiling TBB and Boost in /deps/ directory (possibly very long download and compile time?)
-        - Somehow utilize existing convention of passing deps by CMake command line params? 
-    - Solve issues with pagmo4scgms.dll's dependencies - prompt user to add libs to env path or copy DLLs?
-    - Switch pagmo to Git Submodules instead of CMake FetchContent? Possibly better for editing pagmo sources locally. 
+    - ~~Consider compiling TBB and Boost in /deps/ directory (possibly very long download and compile time?)~~
+        - ~~Somehow utilize existing convention of passing deps by CMake command line params?~~
+        - Problem: nested dependencies would also have to be built
+    - ~~Solve issues with pagmo4scgms.dll's dependencies - prompt user to add libs to env path or copy DLLs?~~
+        - Added CMake warning print prompting user to add Boost and TBB into his PATH env variable
+    - ~~Switch pagmo to Git Submodules instead of CMake FetchContent? Possibly better for editing pagmo sources locally.~~
     - Pathfinder test
     - Pagmo AVX analysis
+    
+```
+Dump of file .\pagmo4scgms.dll
+
+File Type: DLL
+
+  Image has the following dependencies:
+
+    pagmo.dll
+    KERNEL32.dll
+    MSVCP140D.dll
+    VCRUNTIME140D.dll
+    VCRUNTIME140_1D.dll
+    ucrtbased.dll
+```
+
+```
+Dump of file pagmo.dll
+
+File Type: DLL
+
+  Image has the following dependencies:
+
+    tbb12_debug.dll
+    MSVCP140D.dll
+    VCRUNTIME140D.dll
+    VCRUNTIME140_1D.dll
+    ucrtbased.dll
+    KERNEL32.dll
+```
 
 # <img src="https://diabetes.zcu.cz/img/icon.png" width="24" height="24" /> SmartCGMS - release repository
 This repository is an aggregate repository coupling all parts of the SmartCGMS software framework into a single point. Additionally, every time we release a new version, it becomes available here.
