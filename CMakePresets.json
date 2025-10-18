@@ -18,7 +18,7 @@
         "BOOST_PATH": "C:/local/boost_1_89_0/lib64-msvc-14.3/cmake/Boost-1.89.0"
       },
       "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Debug",
+        "CMAKE_BUILD_TYPE": "Release",
         "CMAKE_PREFIX_PATH": "$env{QT_VERSION_PATH}/msvc2022_64;$env{BOOST_PATH}",
         "Qt6_DIR": "$env{QT_VERSION_PATH}/msvc2022_64/lib/cmake/Qt6",
         "SMARTCGMS_COMMON_DIR": "${sourceDir}/common",

@@ -87,3 +87,5 @@ ENDIF ()
 
 ADD_SUBDIRECTORY("wrappers")
 
+ADD_SUBDIRECTORY("PathFinder_test")
+
