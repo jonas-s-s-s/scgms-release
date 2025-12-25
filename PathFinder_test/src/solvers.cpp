@@ -236,6 +236,7 @@ std::vector<TSolver_Result> Run_Solvers(size_t repetitions, CCommon_Problem *pro
 
 			
 			working_problem->reset_counters();
+			std::wcout << L"Running solver: " << solver.description << std::endl;
 			Run_Solver(solver, working_problem.get(), Max_Generations, current_population_size, result);
 		};
 
