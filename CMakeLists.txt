@@ -76,6 +76,9 @@ message("======================")
 message("Configuring Project...")
 message("======================")
 
+# Setting this to OFF because of the "distributed4scgms" sub-project, which already contains a copy of Pagmo
+set(PAGMO4SCGMS_USE_INTERNAL_PAGMO OFF)
+
 ADD_SUBDIRECTORY("common")
 
 ADD_SUBDIRECTORY("core")
