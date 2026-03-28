@@ -40,8 +40,11 @@
 
 #include <scgms/rtl/UILib.h>
 
-#include "objectives.h"
+// From the UDP's library which is now linked to this
+#include "TProblemData.h"
+
 #include "stats.h"
+
 
 #include <mutex>
 

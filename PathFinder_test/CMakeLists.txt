@@ -42,3 +42,6 @@ set_target_properties(pathfinder_test
     LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/compiled/"
     RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/compiled/"
 )
+
+# Link against tproblem_udp, because we need classes from TProblemData and TProblemObjective
+target_link_libraries(pathfinder_test tproblem_udp)

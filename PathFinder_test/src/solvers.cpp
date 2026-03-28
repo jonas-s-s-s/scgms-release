@@ -48,6 +48,8 @@
 #include <numeric>
 #include <map>
 
+#include "scgms/iface/DistributedSolverIface.h"
+
 namespace diagnostic {
 	namespace mt_metade {	//mersenne twister initialized with linear random generator
 		constexpr GUID id = { 0x1b21b62f, 0x7c6c, 0x4027,{ 0x89, 0xbc, 0x68, 0x7d, 0x8b, 0xd3, 0x2b, 0x3c } };	// {1B21B62F-7C6C-4027-89BC-687D8BD32B3C}
@@ -111,7 +113,7 @@ namespace diagnostic {
 	constexpr bool debugging = true;
 
 	constexpr bool run_deterministic_solver_once = true;
-	std::set<GUID> deterministic_solvers = {nlopt::newuoa_id, nlopt::bobyqa_id, nlopt::simplex_id, nlopt::subplex_id, 
+	std::set<GUID> deterministic_solvers = {nlopt::newuoa_id, nlopt::bobyqa_id, nlopt::simplex_id, nlopt::subplex_id,
 										    mt_metade::id, pathfinder::id_fast,  pathfinder::id_spiral, pathfinder::id_landscape };
 		//deterministic solvers, which are known to always give the very same result
 
@@ -121,7 +123,7 @@ namespace diagnostic {
 
 	std::set<GUID> allowed_solvers = {nlopt::bobyqa_id, nlopt::newuoa_id, nlopt::praxis_id, nlopt::simplex_id, nlopt::subplex_id,
 									  pagmo::abc_id, pagmo::cmaes_id, pagmo::sade_id, pagmo::de1220_id, pagmo::pso_id, pagmo::xnes_id, pagmo::ihs_id, pagmo::gpso_id,
-									  halton_metade::id, mt_metade::id, rnd_metade::id, ppr::spo_id, 
+									  halton_metade::id, mt_metade::id, rnd_metade::id, ppr::spo_id,
 									  pathfinder::id_fast, pathfinder::id_spiral, pathfinder::id_landscape,
 									  //sequential_brute_force_scan::id, // disable for preliminary analysis (for full test, this should be enabled as a reference algorithm)
 									  pso::id, rumoropt::id
@@ -133,13 +135,13 @@ namespace diagnostic {
 
 void Run_Solver(const scgms::TSolver_Descriptor &desc, CCommon_Problem * working_problem, const size_t max_generations, const size_t population_size, TSolver_Result &result) {
 
-		
+
 	CSolution lower_bound, upper_bound;
-	std::unique_ptr<CSolution> optimum = std::make_unique<CSolution>();	//when used for the semestral project, some people might have noticed that the optimum 
+	std::unique_ptr<CSolution> optimum = std::make_unique<CSolution>();	//when used for the semestral project, some people might have noticed that the optimum
 											//vector sits right after the upper_bound
 	double optimum_fitness;
 	working_problem->get_bounds(lower_bound, upper_bound);
-	working_problem->get_optimum(*optimum, optimum_fitness);		
+	working_problem->get_optimum(*optimum, optimum_fitness);
 
 	bool failed = false;
 
@@ -148,14 +150,22 @@ void Run_Solver(const scgms::TSolver_Descriptor &desc, CCommon_Problem * working
 
 	//using TObjective_Function = BOOL(IfaceCalling*)(const void* data, const size_t count, const double* solution, double* const fitness);
 
+	// Distributed solver - solver's data
+	solver::TDistributedSolver_Data ds_data = {
+		"tproblem_udp", // Solver lib name
+		"", // Controller's address
+		1, // Expected worker count
+		working_problem, // Original content of the "data" field
+	};
+
+	// Distributed solver - replaced "working_problem" with "ds_data" here, removed pointer to objective
 	solver::TSolver_Setup solver_setup{ lower_bound.size(), 1,
 							lower_bound.data(), upper_bound.data(),
 							nullptr, 0,			//no hints
 							local_parameters.data(),
-							working_problem, Fitness_Wrapper, nullptr,
-							max_generations, population_size, std::numeric_limits<double>::min() };
-
-
+							&ds_data, nullptr, nullptr,
+							max_generations, population_size, std::numeric_limits<double>::min(),
+	};
 
 	solver::TSolver_Progress solver_progress{ 0 };
 
@@ -165,7 +175,7 @@ void Run_Solver(const scgms::TSolver_Descriptor &desc, CCommon_Problem * working
 			failed = true;
 	}
 	catch (...) { failed = true; }
-		
+
 	std::chrono::high_resolution_clock::time_point Solve_Stop_Time = std::chrono::high_resolution_clock::now();
 
 	std::chrono::duration<double, std::milli> secs_duration = Solve_Stop_Time - Solve_Start_Time;
@@ -184,12 +194,12 @@ void Run_Solver(const scgms::TSolver_Descriptor &desc, CCommon_Problem * working
 	result.optimum_fitness.push_back(optimum_fitness);
 	result.fitness.push_back(local_fitness);
 	result.fitness_error.push_back(fabs(local_fitness - optimum_fitness));
-		
+
 	for (size_t i = 0; i < local_parameters.size(); i++) {
 		result.optimum[i].push_back((*optimum)[i]);
 
 		result.parameters[i].push_back(local_parameters[i]);
-		result.abs_parameter_error.push_back(fabs(local_parameters[i] - (*optimum)[i]));			
+		result.abs_parameter_error.push_back(fabs(local_parameters[i] - (*optimum)[i]));
 	}
 
 	for (size_t i = 0; i < params_001.size(); i++) {
@@ -204,7 +214,7 @@ std::vector<TSolver_Result> Run_Solvers(size_t repetitions, CCommon_Problem *pro
 
 	std::vector<TSolver_Result> results;
 
-	
+
 
 	//check, whether the problem can be actually solved
 	if (!problem->Can_Be_Solved()) return results; //likely, the problem cannot be solved for this particular problem size, thus causing some algorithms to fail or run forever, such as Pagmo::ABC
@@ -216,7 +226,7 @@ std::vector<TSolver_Result> Run_Solvers(size_t repetitions, CCommon_Problem *pro
 		//Max_Generations = 100'000;
 		population_size = { 100 };
 	}
-	
+
 	const auto solvers = scgms::get_solver_descriptor_list();
 	auto working_problem = problem->Clone();
 
@@ -234,7 +244,7 @@ std::vector<TSolver_Result> Run_Solvers(size_t repetitions, CCommon_Problem *pro
 				//if (wcscmp(solver.description, L"Pathfinder")) return;
 			}
 
-			
+
 			working_problem->reset_counters();
 			std::wcout << L"Running solver: " << solver.description << std::endl;
 			Run_Solver(solver, working_problem.get(), Max_Generations, current_population_size, result);
@@ -253,7 +263,7 @@ std::vector<TSolver_Result> Run_Solvers(size_t repetitions, CCommon_Problem *pro
 				result.name += std::to_wstring(current_population_size);
 			}
 			result.fail_count = 0;
-			
+
 			working_results[solver.id] = result;
 		}
 
@@ -265,10 +275,10 @@ std::vector<TSolver_Result> Run_Solvers(size_t repetitions, CCommon_Problem *pro
 			std::wcout << j << "; ";
 		std::wcout << std::endl;
 
-		for (size_t repetition = 0; repetition < repetitions; repetition++) {			
+		for (size_t repetition = 0; repetition < repetitions; repetition++) {
 			if (randomize_optimum) working_problem->randomize_shift();	//we need to ensure that in each iteration each solver has exactly the same problem
 
-			//print optimum parameters:			
+			//print optimum parameters:
 			std::wcout << repetition << L"; ";
 			CSolution optimum_params;
 			double optimum_fitness;
@@ -276,8 +286,8 @@ std::vector<TSolver_Result> Run_Solvers(size_t repetitions, CCommon_Problem *pro
 			for (size_t j = 0; j < working_problem->Problem_Size(); j++)
 				std::wcout << optimum_params[j] << "; ";
 			std::wcout << std::endl << std::flush;
-			
-			
+
+
 			for (const auto& solver : solvers) {
 				TSolver_Result &result = working_results[solver.id];
 
@@ -304,7 +314,7 @@ std::vector<TSolver_Result> Run_Solvers(size_t repetitions, CCommon_Problem *pro
 		for (auto& result : working_results)
 			results.push_back(std::move(result.second));
 	}
-	
+
 
 
 	return results;
@@ -333,10 +343,10 @@ void Evaluate_Solvers(CCommon_Problem *problem, const size_t repetitions, const 
 		//print the fitness and its optimium as avg +- stdev
 		CStats global_optimum_fitness;
 		std::vector<CStats> global_optimum{ problem_size };
-		
 
 
-		//2. evaluate the results 
+
+		//2. evaluate the results
 		for (auto &stats : results) {
 			for (auto &param : stats.parameters)
 				param.Calculate_Stats();
@@ -437,7 +447,7 @@ void Evaluate_Solvers(CCommon_Problem *problem, const size_t repetitions, const 
 
 
 		auto write_marker = [problem_size](auto getter, const TSolver_Result &result) {
-			std::cout.precision(std::numeric_limits< double >::max_digits10); 
+			std::cout.precision(std::numeric_limits< double >::max_digits10);
 			std::cout << std::scientific;
 			std::cout << getter(result.fitness) << "; ";
 			std::cout << getter(result.fitness_error) << "; ";
@@ -462,7 +472,7 @@ void Evaluate_Solvers(CCommon_Problem *problem, const size_t repetitions, const 
 
 		auto write_avg_stddev = [](auto getter) {
 			const auto &stats = getter().Get_Stats();
-			std::cout << stats.avg << " ± " << stats.stddev << "; ";
+			std::cout << stats.avg << " ï¿½ " << stats.stddev << "; ";
 		};
 
 
@@ -488,7 +498,7 @@ void Evaluate_Solvers(CCommon_Problem *problem, const size_t repetitions, const 
 			write_marker([](const CStats &stats) {return stats.Get_Stats().max; }, result);
 			std::cout << std::endl;
 		}
-	} else 
+	} else
 	  std::cout << "This problem cannot be solved with the chosen problem size.";
 
 	std::cout << std::endl << "--=== " << problem->Get_Name() << " evaluation completed. ===--" << std::endl << std::endl;
