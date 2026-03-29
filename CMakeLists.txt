@@ -31,6 +31,7 @@ message(STATUS "> ExcelFormat has been built.")
 
 #########################################################################################
 # XLNT
+file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/compiled)
 
 execute_process(
         COMMAND cmake -S . -B ./build/ -G ${CMAKE_GENERATOR}
@@ -38,7 +39,12 @@ execute_process(
         -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}
         -DCMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}
         -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
-        -DCMAKE_DEBUG_POSTFIX=d
+
+        # Make sure xlnt's output is place into the "compiler" directory (the xlnt.dll)
+        -DCMAKE_RUNTIME_OUTPUT_DIRECTORY=${CMAKE_CURRENT_BINARY_DIR}/compiled
+        -DCMAKE_LIBRARY_OUTPUT_DIRECTORY=${CMAKE_CURRENT_BINARY_DIR}/compiled
+        -DCMAKE_ARCHIVE_OUTPUT_DIRECTORY=${CMAKE_CURRENT_BINARY_DIR}/compiled
+
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/deps/xlnt
 )
 
@@ -64,13 +70,6 @@ execute_process(
 )
 
 message(STATUS "> Eigen3 has been configured.")
-
-# Copy dependency DLLs to build dir (dll name is different depending on if it's a debug build or not)
-if ((NOT CMAKE_BUILD_TYPE) OR (CMAKE_BUILD_TYPE STREQUAL "Debug"))
-    configure_file(${CMAKE_CURRENT_SOURCE_DIR}/deps/xlnt/build/source/xlntd.dll ${CMAKE_CURRENT_BINARY_DIR}/compiled/xlntd.dll COPYONLY)
-else ()
-    configure_file(${CMAKE_CURRENT_SOURCE_DIR}/deps/xlnt/build/source/xlnt.dll ${CMAKE_CURRENT_BINARY_DIR}/compiled/xlnt.dll COPYONLY)
-endif ()
 
 message("======================")
 message("Configuring Project...")
