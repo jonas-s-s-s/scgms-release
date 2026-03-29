@@ -51,6 +51,15 @@
 #include "scgms/iface/DistributedSolverIface.h"
 
 namespace diagnostic {
+
+	// DISTRIBUTED SOLVER
+	namespace scgms_distributed_solver
+	{
+		constexpr GUID distributed_solver_generic = {0x7c9d3a41, 0x2f6b, 0x4e8d, {0xa1, 0x5c, 0x9e, 0x73, 0x4b, 0xd2, 0x11, 0xf8}};
+		// {7C9D3A41-2F6B-4E8D-A15C-9E734BD211F8}
+	}
+
+
 	namespace mt_metade {	//mersenne twister initialized with linear random generator
 		constexpr GUID id = { 0x1b21b62f, 0x7c6c, 0x4027,{ 0x89, 0xbc, 0x68, 0x7d, 0x8b, 0xd3, 0x2b, 0x3c } };	// {1B21B62F-7C6C-4027-89BC-687D8BD32B3C}
 	}
@@ -121,7 +130,7 @@ namespace diagnostic {
 
 	std::map<GUID, uint64_t> faulty_solvers = { {nlopt::bobyqa_id, 100} };
 
-	std::set<GUID> allowed_solvers = {nlopt::bobyqa_id, nlopt::newuoa_id, nlopt::praxis_id, nlopt::simplex_id, nlopt::subplex_id,
+	std::set<GUID> allowed_solvers = {scgms_distributed_solver::distributed_solver_generic, nlopt::bobyqa_id, nlopt::newuoa_id, nlopt::praxis_id, nlopt::simplex_id, nlopt::subplex_id,
 									  pagmo::abc_id, pagmo::cmaes_id, pagmo::sade_id, pagmo::de1220_id, pagmo::pso_id, pagmo::xnes_id, pagmo::ihs_id, pagmo::gpso_id,
 									  halton_metade::id, mt_metade::id, rnd_metade::id, ppr::spo_id,
 									  pathfinder::id_fast, pathfinder::id_spiral, pathfinder::id_landscape,
@@ -153,7 +162,7 @@ void Run_Solver(const scgms::TSolver_Descriptor &desc, CCommon_Problem * working
 	// Distributed solver - solver's data
 	solver::TDistributedSolver_Data ds_data = {
 		"tproblem_udp", // Solver lib name
-		"", // Controller's address
+		"tcp://localhost:5000", // Controller's address
 		1, // Expected worker count
 		working_problem, // Original content of the "data" field
 	};
@@ -227,7 +236,25 @@ std::vector<TSolver_Result> Run_Solvers(size_t repetitions, CCommon_Problem *pro
 		population_size = { 100 };
 	}
 
-	const auto solvers = scgms::get_solver_descriptor_list();
+	//#################################################################################
+	// DISTRIBUTED SOLVER - TEMPORARILY DISABLE ALL OTHER SOLVERS
+	//#################################################################################
+	const auto solversList = scgms::get_solver_descriptor_list();
+	int distSolverIndex = 0;
+	for (int i = 0; i < solversList.size(); ++i)
+	{
+		const auto& solver = solversList[i];
+		std::wstring s = solver.description;
+		if (s.find(L"distributed") != std::wstring::npos)
+		{
+			distSolverIndex = i;
+			break;
+		}
+	}
+	const auto solvers = {solversList[distSolverIndex]};
+	//#################################################################################
+
+	//const auto solvers = scgms::get_solver_descriptor_list();
 	auto working_problem = problem->Clone();
 
 
