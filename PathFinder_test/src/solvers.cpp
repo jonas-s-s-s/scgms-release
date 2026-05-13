@@ -163,7 +163,7 @@ void Run_Solver(const scgms::TSolver_Descriptor &desc, CCommon_Problem * working
 	solver::TDistributedSolver_Data ds_data = {
 		"tproblem_udp", // Solver lib name
 		"tcp://localhost:5000", // Controller's address
-		1, // Expected worker count
+		8, // Expected worker count
 		working_problem, // Original content of the "data" field
 	};
 
